@@ -3,18 +3,16 @@
 
 <img src="xray-header-image.png" style="padding-top: 50px;width: 87%;left: 0px;margin-left: 0px;margin-right: 0px;">
 
-__Welcome to the first assignment of course 1!__ 
+In this project we will explore medical image diagnosis by building a state-of-the-art chest X-ray classifier using Keras.
 
-In this assignment! You will explore medical image diagnosis by building a state-of-the-art chest X-ray classifier using Keras. 
-
-The assignment will walk through some of the steps of building and evaluating this deep learning classifier model. In particular, you will:
+The project will walk through some of the steps of building and evaluating this deep learning classifier model. In particular, you will:
 - Pre-process and prepare a real-world X-ray dataset
 - Use transfer learning to retrain a DenseNet model for X-ray image classification
 - Learn a technique to handle class imbalance
 - Measure diagnostic performance by computing the AUC (Area Under the Curve) for the ROC (Receiver Operating Characteristic) curve
 - Visualize model activity using GradCAMs
 
-In completing this assignment you will learn about the following topics: 
+This project covers the following topics: 
 
 - Data preparation
   - Visualizing data
@@ -26,7 +24,7 @@ In completing this assignment you will learn about the following topics:
   - AUC and ROC curves
 
 ## Outline
-Use these links to jump to specific sections of this assignment!
+Use these links to jump to specific sections of this project!
 
 - [1. Import Packages and Function](#1)
 - [2. Load the Datasets](#2)
@@ -50,7 +48,7 @@ Use these links to jump to specific sections of this assignment!
 We'll make use of the following packages:
 - `numpy` and `pandas` is what we'll use to manipulate our data
 - `matplotlib.pyplot` and `seaborn` will be used to produce plots for visualization
-- `util` will provide the locally defined utility functions that have been provided for this assignment
+- `util` will provide the locally defined utility functions that have been provided for this project
 
 We will also use several modules from the `keras` framework for building deep learning models.
 
@@ -74,13 +72,10 @@ from keras.models import load_model
 import util
 ```
 
-    Using TensorFlow backend.
-
-
 <a name='2'></a>
 ## 2 Load the Datasets
 
-For this assignment, we will be using the [ChestX-ray8 dataset](https://arxiv.org/abs/1705.02315) which contains 108,948 frontal-view X-ray images of 32,717 unique patients. 
+For this project, we will be using the [ChestX-ray8 dataset](https://arxiv.org/abs/1705.02315) which contains 108,948 frontal-view X-ray images of 32,717 unique patients. 
 - Each image in the data set contains multiple text-mined labels identifying 14 different pathological conditions. 
 - These in turn can be used by physicians to diagnose 8 different diseases. 
 - We will use this data to develop a single model that will provide binary classification predictions for each of the 14 labeled pathologies. 
@@ -291,7 +286,7 @@ labels = ['Cardiomegaly',
 It is worth noting that our dataset contains multiple images for each patient. This could be the case, for example, when a patient has taken multiple X-ray images at different times during their hospital visits. In our data splitting, we have ensured that the split is done on the patient level so that there is no data "leakage" between the train, validation, and test datasets.
 
 <a name='Ex-1'></a>
-### Exercise 1 - Checking Data Leakage
+### Checking Data Leakage
 In the cell below, write a function to check whether there is leakage between two datasets. We'll use this to make sure there are no patients in the test set that are also present in either the train or validation sets.
 
 
@@ -311,13 +306,13 @@ def check_for_leakage(df1, df2, patient_col):
 
     ### START CODE HERE (REPLACE INSTANCES OF 'None' with your code) ###
     
-    df1_patients_unique = None
-    df2_patients_unique = None
+    df1_patients_unique = set(df1[patient_col].values)
+    df2_patients_unique = set(df2[patient_col].values)
     
-    patients_in_both_groups = None
+    patients_in_both_groups = df1_patients_unique.intersection(df2_patients_unique)
 
     # leakage contains true if there is patient overlap, otherwise false.
-    leakage = None # boolean (true if there is at least 1 patient in both groups)
+    leakage = len(patients_in_both_groups) > 0 # boolean (true if there is at least 1 patient in both groups)
     
     ### END CODE HERE ###
     
@@ -358,7 +353,7 @@ print(f"leakage output: {check_for_leakage(df1, df2, 'patient_id')}")
     0           2
     1           3
     2           4
-    leakage output: None
+    leakage output: True
     -------------------------------------
     test case 2
     df1:
@@ -371,38 +366,9 @@ print(f"leakage output: {check_for_leakage(df1, df2, 'patient_id')}")
     0           3
     1           4
     2           5
-    leakage output: None
+    leakage output: False
 
 
-##### Expected output
-
-```Python
-test case 1
-df1
-   patient_id
-0           0
-1           1
-2           2
-df2
-   patient_id
-0           2
-1           3
-2           4
-leakage output: True
--------------------------------------
-test case 2
-df1:
-   patient_id
-0           0
-1           1
-2           2
-df2:
-   patient_id
-0           3
-1           4
-2           5
-leakage output: False
-```
 
 Run the next cell to check if there are patients in both train and test or in both valid and test.
 
@@ -412,8 +378,8 @@ print("leakage between train and test: {}".format(check_for_leakage(train_df, te
 print("leakage between valid and test: {}".format(check_for_leakage(valid_df, test_df, 'PatientId')))
 ```
 
-    leakage between train and test: None
-    leakage between valid and test: None
+    leakage between train and test: False
+    leakage between valid and test: False
 
 
 If we get `False` for both, then we're ready to start preparing the datasets for training. Remember to always check for data leakage!
@@ -650,7 +616,7 @@ $$\text{and}$$
 $$freq_{n} = \frac{\text{number of negative examples}}{N}.$$
 
 <a name='Ex-2'></a>
-### Exercise 2 - Computing Class Frequencies
+### Computing Class Frequencies
 Complete the function below to calculate these frequences for each label in our dataset.
 
 
@@ -709,18 +675,6 @@ print(f"neg freqs: {test_neg_freqs}")
     neg freqs: [0.2 0.6 0.2]
 
 
-##### Expected output
-
-```Python
-labels:
-[[1 0 0]
- [0 1 1]
- [1 0 1]
- [1 1 1]
- [1 0 1]]
-pos freqs: [0.8 0.4 0.8]
-neg freqs: [0.2 0.6 0.2]
-```
 
 Now we'll compute frequencies for our training data.
 
@@ -795,7 +749,7 @@ After computing the weights, our final weighted loss for each training case will
 $$\mathcal{L}_{cross-entropy}^{w}(x) = - (w_{p} y \log(f(x)) + w_{n}(1-y) \log( 1 - f(x) ) ).$$
 
 <a name='Ex-3'></a>
-### Exercise 3 - Weighted Loss
+### Weighted Loss
 Fill out the `weighted_loss` function below to return a loss function that calculates the weighted loss for each batch. Recall that for the multi-class loss, we add up the average loss for each individual class. Note that we also want to add a small value, $\epsilon$, to the predicted values before taking their logs. This is simply to avoid a numerical error that would otherwise occur if the predicted value happens to be zero.
 
 ##### Note
@@ -808,7 +762,6 @@ Please use Keras functions to calculate the mean and the log.
 
 
 ```python
-# UNQ_C3 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 def get_weighted_loss(pos_weights, neg_weights, epsilon=1e-7):
     """
     Return weighted loss function given negative weights and positive weights.
@@ -958,15 +911,6 @@ model = Model(inputs=base_model.input, outputs=predictions)
 model.compile(optimizer='adam', loss=get_weighted_loss(pos_weights, neg_weights))
 ```
 
-    WARNING:tensorflow:From /opt/conda/lib/python3.6/site-packages/tensorflow_core/python/ops/resource_variable_ops.py:1630: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
-    Instructions for updating:
-    If using Keras pass *_constraint arguments to layers.
-    WARNING:tensorflow:From /opt/conda/lib/python3.6/site-packages/keras/backend/tensorflow_backend.py:4070: The name tf.nn.max_pool is deprecated. Please use tf.nn.max_pool2d instead.
-    
-    WARNING:tensorflow:From /opt/conda/lib/python3.6/site-packages/keras/backend/tensorflow_backend.py:4074: The name tf.nn.avg_pool is deprecated. Please use tf.nn.avg_pool2d instead.
-    
-
-
 <a name='4'></a>
 ## 4 Training [optional]
 
@@ -997,7 +941,7 @@ plt.show()
 <a name='4-1'></a>
 ### 4.1 Training on the Larger Dataset
 
-Given that the original dataset is 40GB+ in size and the training process on the full dataset takes a few hours, we have trained the model on a GPU-equipped machine for you and provided the weights file from our model (with a batch size of 32 instead) to be used for the rest of this assignment. 
+Given that the original dataset is 40GB+ in size and the training process on the full dataset takes a few hours, we have trained the model on a GPU-equipped machine for you and provided the weights file from our model (with a batch size of 32 instead) to be used for the rest of this project. 
 
 The model architecture for our pre-trained model is exactly the same, but we used a few useful Keras "callbacks" for this training. Do spend time to read about these callbacks at your leisure as they will be very useful for managing long-running training sessions:
 
@@ -1026,10 +970,6 @@ Now that we have a model, let's evaluate it using our test set. We can convenien
 ```python
 predicted_vals = model.predict_generator(test_generator, steps = len(test_generator))
 ```
-
-    WARNING:tensorflow:From /opt/conda/lib/python3.6/site-packages/keras/backend/tensorflow_backend.py:422: The name tf.global_variables is deprecated. Please use tf.compat.v1.global_variables instead.
-    
-
 
 <a name='5-1'></a>
 ### 5.1 ROC Curve and AUROC
@@ -1154,6 +1094,3 @@ util.compute_gradcam(model, '00005410_000.png', IMAGE_DIR, df, labels, labels_to
 
 
 ![png](output_71_1.png)
-
-
-Congratulations, you've completed the first assignment of course one! You've learned how to preprocess data, check for data leakage, train a pre-trained model, and evaluate using the AUC. Great work!
