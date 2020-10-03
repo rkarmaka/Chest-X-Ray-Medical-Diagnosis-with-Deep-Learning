@@ -304,8 +304,6 @@ def check_for_leakage(df1, df2, patient_col):
         leakage (bool): True if there is leakage, otherwise False
     """
 
-    ### START CODE HERE (REPLACE INSTANCES OF 'None' with your code) ###
-    
     df1_patients_unique = set(df1[patient_col].values)
     df2_patients_unique = set(df2[patient_col].values)
     
@@ -314,7 +312,6 @@ def check_for_leakage(df1, df2, patient_col):
     # leakage contains true if there is patient overlap, otherwise false.
     leakage = len(patients_in_both_groups) > 0 # boolean (true if there is at least 1 patient in both groups)
     
-    ### END CODE HERE ###
     
     return leakage
 ```
@@ -633,7 +630,6 @@ def compute_class_freqs(labels):
         negative_frequencies (np.array): array of negative frequences for each
                                          class, size (num_classes)
     """
-    ### START CODE HERE (REPLACE INSTANCES OF 'None' with your code) ###
     
     # total number of patients (rows)
     N = labels.shape[0]
@@ -641,7 +637,6 @@ def compute_class_freqs(labels):
     positive_frequencies = np.sum(labels, axis=0) / N
     negative_frequencies = 1 - positive_frequencies
 
-    ### END CODE HERE ###
     return positive_frequencies, negative_frequencies
 ```
 
@@ -786,15 +781,14 @@ def get_weighted_loss(pos_weights, neg_weights, epsilon=1e-7):
         # initialize loss to zero
         loss = 0.0
         
-        ### START CODE HERE (REPLACE INSTANCES OF 'None' with your code) ###
-
+        
         for i in range(len(pos_weights)):
             # for each class, add average weighted loss for that class 
             loss += K.mean(-(pos_weights[i] *y_true[:,i] * K.log(y_pred[:,i] + epsilon) 
                              + neg_weights[i]* (1 - y_true[:,i]) * K.log( 1 - y_pred[:,i] + epsilon))) #complete this line
         return loss
     
-        ### END CODE HERE ###
+        
     return weighted_loss
 ```
 
